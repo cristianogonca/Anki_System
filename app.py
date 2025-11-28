@@ -15,10 +15,8 @@ st.set_page_config(
 # CSS matching English Study Tracker
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    
     * {
-        font-family: 'Inter', sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     }
     
     /* Purple gradient background like tracker */
@@ -485,7 +483,6 @@ if st.session_state.audios_gerados and st.session_state.audio_dir:
         st.info("Download the Excel file with audio file references added.")
         
         # Create Excel file in memory
-        import io
         excel_buffer = io.BytesIO()
         st.session_state.df.to_excel(excel_buffer, index=False)
         excel_buffer.seek(0)
