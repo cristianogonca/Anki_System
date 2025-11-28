@@ -1,5 +1,5 @@
 streamlit==1.31.0
 pandas==2.2.0
 openpyxl==3.1.2
-pyttsx3==2.90
+gtts==2.5.0
 genanki==0.13.1

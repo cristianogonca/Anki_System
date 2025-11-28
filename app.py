@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-import pyttsx3
+import io
 from utils import criar_audios, gerar_links_audios, criar_baralho_anki, limpar_arquivos_temporarios
 
 # Page configuration
@@ -312,23 +312,12 @@ col1, col2 = st.columns(2)
 
 with col1:
     deck_name = st.text_input("📦 Deck Name", "English Words", key="deck_name_input")
-    audio_rate = st.slider("⚡ Audio Speed", 100, 250, 150, 10, key="audio_rate_slider")
 
 with col2:
-    # Get system voices
-    try:
-        engine_temp = pyttsx3.init()
-        vozes_sistema = engine_temp.getProperty('voices')
-        vozes_disponiveis = {voz.name.split(' - ')[0]: voz.id for voz in vozes_sistema}
-        del engine_temp
-    except:
-        vozes_disponiveis = {"Default Voice": None}
-    
-    voice_word = st.selectbox("🗣️ Voice for Word", list(vozes_disponiveis.keys()), index=0, key="voice_word_select")
-    voice_context = st.selectbox("🗣️ Voice for Context", list(vozes_disponiveis.keys()), index=min(1, len(vozes_disponiveis)-1), key="voice_context_select")
+    audio_speed = st.slider("⚡ Audio Speed", 0.5, 2.0, 1.0, 0.1, key="audio_speed_slider", help="1.0 = normal speed")
 
-voice_word_id = vozes_disponiveis[voice_word]
-voice_context_id = vozes_disponiveis[voice_context]
+st.info("🎤 Using Google Text-to-Speech (English voice)")
+
 deck_id = 2059400110
 model_id = 1607392319
 
@@ -435,9 +424,7 @@ if st.session_state.df is not None and not st.session_state.audios_gerados:
             audio_dir = criar_audios(
                 st.session_state.df,
                 audio_folder_name,
-                voice_word_id,
-                voice_context_id,
-                audio_rate
+                speed=audio_speed
             )
             
             # Generate links
@@ -486,39 +473,59 @@ if st.session_state.audios_gerados and st.session_state.audio_dir:
     st.markdown('</div>', unsafe_allow_html=True)
     
     # ============================================================================
-    # STEP 4: Generate Deck
+    # STEP 4: Download Options
     # ============================================================================
     st.markdown('<div class="tracker-card">', unsafe_allow_html=True)
-    st.markdown("<h2>🎴 Generate Anki Deck</h2>", unsafe_allow_html=True)
+    st.markdown("<h2>📥 Download Options</h2>", unsafe_allow_html=True)
     
-    if st.button("📦 Create .apkg Deck", type="primary", use_container_width=True):
-        with st.spinner("📦 Creating deck..."):
-            apkg_path, cartas_novas, total_cartas = criar_baralho_anki(
-                st.session_state.df,
-                st.session_state.audio_dir,
-                deck_name,
-                deck_id,
-                model_id
-            )
-            
-            limpar_arquivos_temporarios()
-            
-            # Result metrics - minimal and compact
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric(label="📚 Total Cards", value=total_cartas)
-            with col2:
-                st.metric(label="✅ Status", value="Complete")
-            
-            # Download
-            with open(apkg_path, "rb") as f:
-                st.download_button(
-                    label="⬇️ Download .apkg Deck",
-                    data=f,
-                    file_name=f"{deck_name}.apkg",
-                    mime="application/octet-stream",
-                    use_container_width=True
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 📊 Excel with Audio Links")
+        st.info("Download the Excel file with audio file references added.")
+        
+        # Create Excel file in memory
+        import io
+        excel_buffer = io.BytesIO()
+        st.session_state.df.to_excel(excel_buffer, index=False)
+        excel_buffer.seek(0)
+        
+        st.download_button(
+            label="⬇️ Download Excel",
+            data=excel_buffer,
+            file_name=f"{deck_name}_with_audio.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+    
+    with col2:
+        st.markdown("#### 🎴 Anki Deck (.apkg)")
+        st.info("Generate and download the complete Anki deck with all audio files.")
+        
+        if st.button("📦 Generate .apkg", type="primary", use_container_width=True):
+            with st.spinner("📦 Creating deck..."):
+                apkg_path, cartas_novas, total_cartas = criar_baralho_anki(
+                    st.session_state.df,
+                    st.session_state.audio_dir,
+                    deck_name,
+                    deck_id,
+                    model_id
                 )
+                
+                limpar_arquivos_temporarios()
+                
+                st.success(f"✅ Deck created with {total_cartas} cards!")
+                
+                # Download button
+                with open(apkg_path, "rb") as f:
+                    st.download_button(
+                        label="⬇️ Download .apkg Deck",
+                        data=f,
+                        file_name=f"{deck_name}.apkg",
+                        mime="application/octet-stream",
+                        use_container_width=True,
+                        key="download_apkg"
+                    )
     
     st.markdown('</div>', unsafe_allow_html=True)
 

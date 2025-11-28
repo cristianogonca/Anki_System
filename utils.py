@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-import pyttsx3
+from gtts import gTTS
 import genanki
 from pathlib import Path
 import sqlite3
@@ -9,27 +9,21 @@ import tempfile
 import shutil
 
 
-def criar_audios(df, audio_folder_name, voice_word_id=None, voice_context_id=None, rate=150):
+def criar_audios(df, audio_folder_name, speed=1.0):
     """
-    Cria arquivos de áudio MP3 para Word e Context do DataFrame usando pyttsx3 (vozes do Windows).
+    Cria arquivos de áudio MP3 para Word e Context do DataFrame usando gTTS (Google Text-to-Speech).
     
     Args:
         df: DataFrame com colunas 'Word', 'Phonetic' (opcional), 'Context'
         audio_folder_name: Nome da pasta onde os áudios serão salvos
-        voice_word_id: ID da voz para Word (None = voz padrão do sistema)
-        voice_context_id: ID da voz para Context (None = voz padrão do sistema)
-        rate: Velocidade da fala em palavras por minuto (padrão: 150)
+        speed: Velocidade da fala (0.5 = lento, 1.0 = normal, 2.0 = rápido)
     
     Returns:
         Caminho da pasta onde os áudios foram salvos
     """
-    # Criar diretório de áudios
-    audio_dir = os.path.join(os.getcwd(), audio_folder_name)
+    # Criar diretório de áudios usando tempfile para compatibilidade com Streamlit Cloud
+    audio_dir = os.path.join(tempfile.gettempdir(), audio_folder_name)
     os.makedirs(audio_dir, exist_ok=True)
-    
-    # Inicializar engine de TTS
-    engine = pyttsx3.init()
-    engine.setProperty('rate', rate)
     
     # Verificar se existe coluna Word
     if 'Word' not in df.columns:
@@ -44,27 +38,21 @@ def criar_audios(df, audio_folder_name, voice_word_id=None, voice_context_id=Non
     for i, palavra in enumerate(palavras):
         if pd.notna(palavra):
             try:
-                if voice_word_id:
-                    engine.setProperty('voice', voice_word_id)
-                
                 filename = os.path.join(audio_dir, f"word_{i+1}.mp3")
-                engine.save_to_file(str(palavra), filename)
-                engine.runAndWait()
+                tts = gTTS(text=str(palavra), lang='en', slow=(speed < 0.8))
+                tts.save(filename)
             except Exception as e:
                 print(f"Erro ao criar áudio Word {i+1}: {str(e)}")
                 continue
     
-    # Gerar áudios para Context (garante que usa a coluna correta)
+    # Gerar áudios para Context
     contextos = df['Context'].tolist()
     for i, contexto in enumerate(contextos):
         if pd.notna(contexto):
             try:
-                if voice_context_id:
-                    engine.setProperty('voice', voice_context_id)
-                
                 filename = os.path.join(audio_dir, f"context_{i+1}.mp3")
-                engine.save_to_file(str(contexto), filename)
-                engine.runAndWait()
+                tts = gTTS(text=str(contexto), lang='en', slow=(speed < 0.8))
+                tts.save(filename)
             except Exception as e:
                 print(f"Erro ao criar áudio Context {i+1}: {str(e)}")
                 continue
@@ -126,31 +114,6 @@ def gerar_links_audios(df, audio_dir, excel_path, deck_name=None):
     df_copy['Audio_Context'] = audio_context
     
     print(f"✅ DataFrame com {len(df_copy)} linhas e colunas: {df_copy.columns.tolist()}")
-    
-    # Salvar arquivo atualizado com nome do baralho
-    try:
-        # Criar DataFrame completo com todas as colunas originais + áudio
-        df_to_save = df.copy()
-        df_to_save['Audio_Word'] = audio_word
-        df_to_save['Audio_Context'] = audio_context
-        
-        # Criar nome do arquivo atualizado
-        if deck_name:
-            # Usar o nome do baralho
-            output_excel = os.path.join(os.getcwd(), f"{deck_name}.xlsx")
-        else:
-            # Fallback para nome baseado no excel_path se fornecido
-            if excel_path:
-                base_name = os.path.splitext(excel_path)[0]
-                output_excel = os.path.join(os.getcwd(), f"{base_name}_updated.xlsx")
-            else:
-                output_excel = os.path.join(os.getcwd(), "deck_updated.xlsx")
-        
-        # Salvar arquivo atualizado
-        df_to_save.to_excel(output_excel, index=False)
-        print(f"✅ Arquivo Excel atualizado salvo em: {output_excel}")
-    except Exception as e:
-        print(f"⚠️ Erro ao atualizar arquivo Excel: {str(e)}")
     
     return df_copy
 
