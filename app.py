@@ -22,12 +22,13 @@ st.markdown("""
     /* Purple gradient background like tracker */
     .main {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 0;
+        padding: 0 !important;
     }
     
     .block-container {
-        padding: 0 3rem 2rem 3rem;
+        padding: 0 3rem 2rem 3rem !important;
         max-width: 1400px;
+        margin-top: 0 !important;
     }
     
     /* Header navbar estilo do tracker */
@@ -38,7 +39,9 @@ st.markdown("""
         align-items: center;
         justify-content: space-between;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
+        margin: -2rem -3rem 2rem -3rem;
+        position: relative;
+        z-index: 100;
     }
     
     .navbar-brand {
