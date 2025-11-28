@@ -22,26 +22,24 @@ st.markdown("""
     /* Purple gradient background like tracker */
     .main {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 0 !important;
+        padding: 0;
     }
     
     .block-container {
-        padding: 0 3rem 2rem 3rem !important;
+        padding: 2rem 3rem !important;
         max-width: 1400px;
-        margin-top: 0 !important;
     }
     
     /* Header navbar estilo do tracker */
     .navbar {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1.2rem 3rem;
+        padding: 1.5rem 2rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin: -2rem -3rem 2rem -3rem;
-        position: relative;
-        z-index: 100;
+        margin-bottom: 2rem;
+        border-radius: 10px;
     }
     
     .navbar-brand {
