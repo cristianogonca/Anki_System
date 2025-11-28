@@ -81,16 +81,16 @@ st.markdown("""
     .tracker-card {
         background: white;
         border-radius: 15px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
     
     .tracker-card h2 {
         color: #5a67d8;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
     }
